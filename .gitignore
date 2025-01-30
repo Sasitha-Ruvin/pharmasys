@@ -1,0 +1,4 @@
+/.env
+/.env.sentry-build-plugin
+/.next
+/node_modules

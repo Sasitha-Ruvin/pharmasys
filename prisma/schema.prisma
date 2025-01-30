@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model admin {
+  id       Int    @id @default(autoincrement())
+  email    String @unique(map: "Admin_email_key")
+  name     String
+  password String
+  role     String
+}
+
+model client {
+  id            Int             @id @default(autoincrement())
+  name          String
+  type          String
+  email         String          @unique(map: "Client_email_key")
+  contact       String
+  contractType  String
+  paymentMethod String
+  tier          String
+  isDeleted     Boolean         @default(false)
+  clientaddress clientaddress[]
+  order         order[]
+}
+
+model clientaddress {
+  id       Int    @id @default(autoincrement())
+  clientId Int
+  address  String
+  client   client @relation(fields: [clientId], references: [id], onDelete: NoAction, map: "ClientAddress_clientId_fkey")
+
+  @@index([clientId], map: "ClientAddress_clientId_idx")
+}
+
+model medication {
+  id                   Int               @id @default(autoincrement())
+  scientificName       String
+  ingredients          String
+  category             String
+  type                 String
+  warnings             String
+  sideEffects          String
+  batchCode            String
+  arrivalDate          DateTime
+  expireDate           DateTime
+  supplierId           Int
+  amount               Int
+  pricePerUnit         Float
+  bestBeforeDate       DateTime
+  shelfAddress         String
+  handlingInstructions String
+  medicationNameId     Int
+  storetemp            String?
+  medicationname       medicationname    @relation(fields: [medicationNameId], references: [id])
+  supplier             supplier          @relation(fields: [supplierId], references: [id], onDelete: NoAction, map: "Medication_supplierId_fkey")
+  ordermedication      ordermedication[]
+
+}
+
+model medicationname {
+  id         Int          @id @default(autoincrement())
+  name       String       @unique(map: "MedicationName_name_key")
+  medication medication[]
+}
+
+model order {
+  id              Int               @id @default(autoincrement())
+  orderDate       DateTime
+  deliveryAddress String
+  total           Float
+  clientId        Int
+  estDeliveryDate DateTime
+  notes           String?
+  orderStatus     String            @default("Pending")
+  userId          Int
+  client          client            @relation(fields: [clientId], references: [id])
+  user            user              @relation(fields: [userId], references: [id])
+  ordermedication ordermedication[]
+}
+
+model ordermedication {
+  id           Int        @id @default(autoincrement())
+  orderId      Int
+  medicationId Int
+  quantity     Int
+  price        Float
+  medication   medication @relation(fields: [medicationId], references: [id], onDelete:Cascade)
+  order        order      @relation(fields: [orderId], references: [id])
+}
+
+model supplier {
+  id         Int          @id @default(autoincrement())
+  name       String
+  address    String
+  contact    String
+  email      String
+  country    String
+  tier       String
+  isDeleted  Boolean      @default(false)
+  medication medication[]
+}
+
+model user {
+  id         Int       @id @default(autoincrement())
+  email      String    @unique(map: "User_email_key")
+  name       String
+  address    String
+  password   String
+  role       String
+  contact    String?
+  dateJoined DateTime?
+  status     String?
+  isDeleted  Boolean   @default(false)
+  order      order[]
+}
